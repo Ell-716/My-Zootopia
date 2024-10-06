@@ -16,12 +16,16 @@ def get_animals(animals_data):
     output = ""
     for animal in animals_data:
         output += '<li class="cards__item">'
-        output += f"\nName: {animal["name"]}<br/>\n"
-        output += f"Diet: {animal["characteristics"]["diet"]}<br/>\n"
-        output += f"Location: {animal["locations"][0]}<br/>\n"
+        output += '<div class ="card__title">'
+        output += f"\n{animal["name"]}<br/>\n"
+        output += '</div>'
+        output += '<p class="card__text">'
+        output += f"<strong>Diet:</strong> {animal["characteristics"]["diet"]}<br/>\n"
+        output += f"<strong>Location:</strong> {animal["locations"][0]}<br/>\n"
 
         if "type" in animal["characteristics"]:
-            output += f"Type: {animal["characteristics"]["type"]}<br/>\n"
+            output += f"<strong>Type:</strong> {animal["characteristics"]["type"]}<br/>\n"
+        output += '</p>\n'
         output += '</li>\n'
     return output
 
