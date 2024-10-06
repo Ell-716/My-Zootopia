@@ -15,12 +15,14 @@ def load_html(html_template):
 def get_animals(animals_data):
     output = ""
     for animal in animals_data:
-        output += f"\nName: {animal["name"]}\n"
-        output += f"Diet: {animal["characteristics"]["diet"]}\n"
-        output += f"Location: {animal["locations"][0]}\n"
+        output += '<li class="cards__item">'
+        output += f"\nName: {animal["name"]}<br/>\n"
+        output += f"Diet: {animal["characteristics"]["diet"]}<br/>\n"
+        output += f"Location: {animal["locations"][0]}<br/>\n"
 
         if "type" in animal["characteristics"]:
-            output += f"Type: {animal["characteristics"]["type"]}\n"
+            output += f"Type: {animal["characteristics"]["type"]}<br/>\n"
+        output += '</li>\n'
     return output
 
 
@@ -34,7 +36,7 @@ def main():
     html_data = load_html("animals_template.html")
     output = get_animals(animals_data)
     replaced_data = html_data.replace("__REPLACE_ANIMALS_INFO__", output)
-    animals_html = new_animals_file(replaced_data)
+    new_animals_file(replaced_data)
 
 
 if __name__ == "__main__":
