@@ -14,23 +14,36 @@ def load_html(html_template):
 
 
 def serialize_animal(animal_obj):
-    """ Serializes a single animal object into HTML format """
-    output = '<li class="cards__item">\n'
-    output += f'<div class="card__title">{animal_obj["name"]}</div>\n'
-    output += '<p class="card__text">\n'
-    output += f"<strong>Diet:</strong> {animal_obj['characteristics']['diet']}<br/>\n"
-    output += f"<strong>Location:</strong> {animal_obj['locations'][0]}<br/>\n"
-    output += f"<strong>Skin-type:</strong> {animal_obj['characteristics']['skin_type']}<br/>\n"
-    output += f"<strong>Lifespan:</strong> {animal_obj['characteristics']['lifespan']}<br/>\n"
+    """ Serializes a single animal object into HTML format with CSS classes """
+
+    # Base structure of the card for each animal
+    output = "<li class='cards__item'>\n"
+    output += f"<div class='card__title'>{animal_obj['name']}</div>\n"
+    output += "<div class='card__text'>\n"
+    output += "<ul class='animal-details'>\n"
+
+    # Create the list of characteristics
+    list_items = [
+        f"<li class='animal-detail-item'><strong>Diet:</strong> {animal_obj['characteristics']['diet']}</li>",
+        f"<li class='animal-detail-item'><strong>Location:</strong> {animal_obj['locations'][0]}</li>",
+        f"<li class='animal-detail-item'><strong>Skin-type:</strong> {animal_obj['characteristics']['skin_type']}</li>",
+        f"<li class='animal-detail-item'><strong>Lifespan:</strong> {animal_obj['characteristics']['lifespan']}</li>",
+    ]
 
     if "type" in animal_obj["characteristics"]:
-        output += f"<strong>Type:</strong> {animal_obj['characteristics']['type']}<br/>\n"
+        list_items.append(f"<li class='animal-detail-item'><strong>Type:</strong> "
+                          f"{animal_obj['characteristics']['type']}</li>")
 
     if "color" in animal_obj["characteristics"]:
-        output += f"<strong>Color:</strong> {animal_obj['characteristics']['color']}<br/>\n"
+        list_items.append(f"<li class='animal-detail-item'><strong>Color:</strong> "
+                          f"{animal_obj['characteristics']['color']}</li>")
 
-    output += '</p>\n'
-    output += '</li>\n'
+    # Join all list items and append them to the output
+    output += "\n".join(list_items)
+    output += "\n</ul>\n"
+    output += "</div>\n"
+    output += "</li>\n"
+
     return output
 
 
