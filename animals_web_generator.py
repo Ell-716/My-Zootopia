@@ -1,25 +1,11 @@
-import requests
-
-API_KEY = "ay9ZVJ5nVCOlksb1Dzw5+w==kuK8tkVKdvf8Q7CA"
-
-
-def load_data_api(animal_name):
-    """Fetches animal data from the API based on the user-provided name."""
-    api_url = f"https://api.api-ninjas.com/v1/animals?name={animal_name}"
-    response = requests.get(api_url, headers={'X-Api-Key': API_KEY})
-
-    response.encoding = "utf-8"  # Set the response encoding
-
-    # Check for response status
-    if response.status_code == requests.codes.ok:
-        return response.json()  # Directly return the JSON data
-    else:
-        print(f"Error fetching data: {response.status_code}")
-        return None  # Return None if no data found or error occurs
+import data_fetcher
 
 
 def get_animal_name():
-    """Prompts the user for a valid animal name and validates it against the API."""
+    """Prompts the user for a valid animal name and validates it against the API.
+    Returns:
+        tuple: A tuple containing the animal name (str) and its corresponding data (list).
+    """
     while True:
         animal_name = input("Please enter a name of an animal: ").lower().strip()
         if not animal_name or animal_name.isdigit():
@@ -27,7 +13,7 @@ def get_animal_name():
             continue
 
         # Check if the API has data for this animal name
-        animals_data = load_data_api(animal_name)
+        animals_data = data_fetcher.load_data_api(animal_name)
         if animals_data is not None:
             return animal_name, animals_data
         else:
@@ -35,7 +21,12 @@ def get_animal_name():
 
 
 def get_skin_type(skin_types):
-    """Prompts the user to select a skin type, with validation."""
+    """Prompts the user to select a skin type, with validation.
+    Args:
+        skin_types (set): A set of available skin types.
+    Returns:
+        str: The selected skin type.
+    """
     print("Available skin types:")
     for skin_type in skin_types:
         print(f"- {skin_type}")
@@ -49,7 +40,12 @@ def get_skin_type(skin_types):
 
 
 def serialize_animal(animal_obj):
-    """Serializes a single animal object into HTML format with CSS classes."""
+    """Serializes a single animal object into HTML format with CSS classes.
+    Args:
+        animal_obj (dict): A dictionary containing animal data.
+    Returns:
+        str: An HTML string representation of the animal object.
+    """
     output = "<li class='cards__item'>\n"
     output += f"<div class='card__title'>{animal_obj['name']}</div>\n"
     output += "<div class='card__text'>\n"
@@ -79,7 +75,13 @@ def serialize_animal(animal_obj):
 
 
 def get_animals_by_skin_type(animals_data, selected_skin_type):
-    """Filters animals by selected skin type."""
+    """Filters animals by selected skin type.
+    Args:
+        animals_data (list): A list of animal data dictionaries.
+        selected_skin_type (str): The selected skin type to filter by.
+    Returns:
+        list: A list of animals that match the selected skin type.
+    """
     return [
         animal for animal in animals_data
         if animal["characteristics"].get("skin_type") == selected_skin_type
@@ -87,19 +89,32 @@ def get_animals_by_skin_type(animals_data, selected_skin_type):
 
 
 def load_html(html_template):
-    """Loads an HTML template."""
+    """Loads an HTML template.
+    Args:
+        html_template (str): The file path of the HTML template to load.
+    Returns:
+        str: The content of the HTML template.
+    """
     with open(html_template, "r") as file:
         return file.read()
 
 
 def new_animals_file(replaced_data):
-    """Writes the final HTML data to a file."""
+    """Writes the final HTML data to a file.
+    Args:
+        replaced_data (str): The HTML data to write to the file.
+    """
     with open("animals.html", "w") as new_file:
         return new_file.write(replaced_data)
 
 
 def get_skin_types(animals_data):
-    """Retrieves unique skin types from the animals data."""
+    """Retrieves unique skin types from the animals data.
+    Args:
+        animals_data (list): A list of animal data dictionaries.
+    Returns:
+        set: A set of unique skin types from the animals data.
+    """
     skin_types = set()
     for animal in animals_data:
         skin_type = animal["characteristics"].get("skin_type")
@@ -109,6 +124,14 @@ def get_skin_types(animals_data):
 
 
 def main():
+    """This function prompts the user for an animal name, fetches data from the API,
+        and generates an HTML file with details of the specified animals. It handles
+        cases where the animal does not exist or where no data is available for the
+        selected skin type.
+        Returns:
+            None: This function does not return a value but writes to an HTML file.
+    """
+
     # Get a valid animal name and the corresponding data
     animal_name, animals_data = get_animal_name()
 
