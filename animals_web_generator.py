@@ -1,42 +1,75 @@
-import json
+import requests
+
+API_KEY = "ay9ZVJ5nVCOlksb1Dzw5+w==kuK8tkVKdvf8Q7CA"
 
 
-def load_data(file_path):
-    """ Loads a JSON file """
-    with open(file_path, "r") as handle:
-        return json.load(handle)
+def load_data_api(animal_name):
+    """Fetches animal data from the API based on the user-provided name."""
+    api_url = f"https://api.api-ninjas.com/v1/animals?name={animal_name}"
+    response = requests.get(api_url, headers={'X-Api-Key': API_KEY})
+
+    response.encoding = "utf-8"  # Set the response encoding
+
+    # Check for response status
+    if response.status_code == requests.codes.ok:
+        return response.json()  # Directly return the JSON data
+    else:
+        print(f"Error fetching data: {response.status_code}")
+        return None  # Return None if no data found or error occurs
 
 
-def load_html(html_template):
-    """ Loads an HTML template """
-    with open(html_template, "r") as file:
-        return file.read()
+def get_animal_name():
+    """Prompts the user for a valid animal name and validates it against the API."""
+    while True:
+        animal_name = input("Please enter a name of an animal: ").lower().strip()
+        if not animal_name or animal_name.isdigit():
+            print("Invalid input. Please try again.")
+            continue
+
+        # Check if the API has data for this animal name
+        animals_data = load_data_api(animal_name)
+        if animals_data is not None:
+            return animal_name, animals_data
+        else:
+            print("Sorry, no data found for this animal. Please try again.")
+
+
+def get_skin_type(skin_types):
+    """Prompts the user to select a skin type, with validation."""
+    print("Available skin types:")
+    for skin_type in skin_types:
+        print(f"- {skin_type}")
+
+    while True:
+        selected_skin_type = input("Please enter a skin type from the list above: ").strip().lower()
+        if selected_skin_type and any(selected_skin_type == skin_type.lower() for skin_type in skin_types):
+            # Return the exact match (case-insensitive)
+            return next(skin_type for skin_type in skin_types if skin_type.lower() == selected_skin_type)
+        print("Invalid input. Please enter a valid skin type from the list.")
 
 
 def serialize_animal(animal_obj):
-    """ Serializes a single animal object into HTML format with CSS classes """
+    """Serializes a single animal object into HTML format with CSS classes."""
     output = "<li class='cards__item'>\n"
     output += f"<div class='card__title'>{animal_obj['name']}</div>\n"
     output += "<div class='card__text'>\n"
     output += "<ul class='animal-details'>\n"
 
-    # Create the list of characteristics
     list_items = [
-        f"<li class='animal-detail-item'><strong>Diet:</strong> {animal_obj['characteristics']['diet']}</li>",
-        f"<li class='animal-detail-item'><strong>Location:</strong> {animal_obj['locations'][0]}</li>",
-        f"<li class='animal-detail-item'><strong>Skin-type:</strong> {animal_obj['characteristics']['skin_type']}</li>",
-        f"<li class='animal-detail-item'><strong>Lifespan:</strong> {animal_obj['characteristics']['lifespan']}</li>",
+        f"<li class='animal-detail-item'><strong>Diet:</strong> "
+        f"{animal_obj['characteristics'].get('diet', 'Unknown')}</li>",
+        f"<li class='animal-detail-item'><strong>Location:</strong> "
+        f"{animal_obj.get('locations', ['Unknown'])[0]}</li>",
+        f"<li class='animal-detail-item'><strong>Skin-type:</strong> "
+        f"{animal_obj['characteristics'].get('skin_type', 'Unknown')}</li>",
+        f"<li class='animal-detail-item'><strong>Lifespan:</strong> "
+        f"{animal_obj['characteristics'].get('lifespan', 'Unknown')}</li>",
+        f"<li class='animal-detail-item'><strong>Type:</strong> "
+        f"{animal_obj['characteristics'].get('type', 'Unknown')}</li>",
+        f"<li class='animal-detail-item'><strong>Color:</strong> "
+        f"{animal_obj['characteristics'].get('color', 'Unknown')}</li>"
     ]
 
-    if "type" in animal_obj["characteristics"]:
-        list_items.append(f"<li class='animal-detail-item'><strong>Type:</strong> "
-                          f"{animal_obj['characteristics']['type']}</li>")
-
-    if "color" in animal_obj["characteristics"]:
-        list_items.append(f"<li class='animal-detail-item'><strong>Color:</strong> "
-                          f"{animal_obj['characteristics']['color']}</li>")
-
-    # Join all list items and append them to the output
     output += "\n".join(list_items)
     output += "\n</ul>\n"
     output += "</div>\n"
@@ -45,16 +78,28 @@ def serialize_animal(animal_obj):
     return output
 
 
-def get_animals(animals_data):
-    """ Serializes all animals into HTML format """
-    output = ""
-    for animal in animals_data:
-        output += serialize_animal(animal)
-    return output
+def get_animals_by_skin_type(animals_data, selected_skin_type):
+    """Filters animals by selected skin type."""
+    return [
+        animal for animal in animals_data
+        if animal["characteristics"].get("skin_type") == selected_skin_type
+    ]
+
+
+def load_html(html_template):
+    """Loads an HTML template."""
+    with open(html_template, "r") as file:
+        return file.read()
+
+
+def new_animals_file(replaced_data):
+    """Writes the final HTML data to a file."""
+    with open("animals.html", "w") as new_file:
+        return new_file.write(replaced_data)
 
 
 def get_skin_types(animals_data):
-    """ Retrieves unique skin types from the animals data """
+    """Retrieves unique skin types from the animals data."""
     skin_types = set()
     for animal in animals_data:
         skin_type = animal["characteristics"].get("skin_type")
@@ -63,62 +108,47 @@ def get_skin_types(animals_data):
     return skin_types
 
 
-def get_animals_by_skin_type(animals_data, selected_skin_type):
-    """ Filters animals by selected skin type """
-    filtered_animals = [
-        animal for animal in animals_data
-        if animal["characteristics"].get("skin_type") == selected_skin_type
-    ]
-    return filtered_animals
-
-
-def new_animals_file(replaced_data):
-    """ Writes the final HTML data to a file """
-    with open("animals.html", "w") as new_file:
-        return new_file.write(replaced_data)
-
-
 def main():
-    animals_data = load_data('animals_data.json')
+    # Get a valid animal name and the corresponding data
+    animal_name, animals_data = get_animal_name()
 
-    # Step 1: Get available skin types and display them
+    # If animals_data is None (not found), display an error message
+    if not animals_data:
+        error_message = (
+            "<div style='text-align: center; font-family: Arial, sans-serif;'>"
+            f"<h2>Sorry, but the animal \"{animal_name}\" doesn't exist.</h2>"
+            "<p style='font-size: 18px;'>Please check the name and try again.</p>"
+            "</div>"
+        )
+        html_data = load_html("animals_template.html")
+        replaced_data = html_data.replace("__REPLACE_ANIMALS_INFO__", error_message)
+        new_animals_file(replaced_data)
+        print(f"\nWebsite generated with the error message for the animal: {animal_name}")
+        return
+
+    # Extract available skin types
     skin_types = get_skin_types(animals_data)
-    print("Available skin types:")
-    for skin_type in skin_types:
-        print(f"- {skin_type}")
 
-    # Step 2: Get user input for skin type with validation
-    while True:
-        selected_skin_type = input("Please enter a skin type from the list above: ").strip()
+    if not skin_types:
+        print("No skin types available for this animal.")
+        return
 
-        # Normalize to lower case for case insensitive comparison
-        normalized_skin_type = selected_skin_type.lower()
+    # Get user input for skin type
+    selected_skin_type = get_skin_type(skin_types)
 
-        # Check if the input is a valid skin type
-        if not normalized_skin_type or normalized_skin_type.isdigit():
-            print("Invalid input. Please enter a valid skin type (not a number).")
-            continue
-
-        # Check if normalized input matches any skin types in the list
-        if any(normalized_skin_type == skin_type.lower() for skin_type in skin_types):
-            selected_skin_type = next(
-                skin_type for skin_type in skin_types if skin_type.lower() == normalized_skin_type)
-            break
-        else:
-            print("Invalid skin type. Please enter one of the available skin types.")
-
-    # Step 3: Filter animals by selected skin type
+    # Filter animals by the selected skin type
     filtered_animals = get_animals_by_skin_type(animals_data, selected_skin_type)
 
-    # If no animals found for selected skin type
     if not filtered_animals:
         print(f"No animals found with skin type: {selected_skin_type}.")
         return
 
+    # Generate HTML output
     html_data = load_html("animals_template.html")
-    output = get_animals(filtered_animals)  # Call the get_animals function here
+    output = "\n".join([serialize_animal(animal) for animal in filtered_animals])
     replaced_data = html_data.replace("__REPLACE_ANIMALS_INFO__", output)
     new_animals_file(replaced_data)
+    print(f"\nWebsite generated with animals of skin type: {selected_skin_type}")
 
 
 if __name__ == "__main__":
